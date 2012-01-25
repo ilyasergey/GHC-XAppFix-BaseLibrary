@@ -43,6 +43,7 @@ module Control.Applicative (
     (<$>), (<$), (<**>),
     liftA, liftA2, liftA3,
     optional,
+    Identity(..)
     ) where
 
 import Prelude hiding (id,(.))
@@ -277,3 +278,10 @@ liftA3 f a b c = f <$> a <*> b <*> c
 -- | One or none.
 optional :: Alternative f => f a -> f (Maybe a)
 optional v = Just <$> v <|> pure Nothing
+
+newtype Identity a = Identity {runIdentity :: a}
+instance Functor Identity where
+  fmap f v = Identity $ f $ runIdentity v
+instance Applicative Identity where
+  pure = Identity
+  f <*> v = Identity $ runIdentity f $ runIdentity v

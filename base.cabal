@@ -110,6 +110,9 @@ Library {
     }
     exposed-modules:
         Control.Applicative,
+        Control.Applicative.Compose,
+        Control.Applicative.Fix,
+        Control.Applicative.GeneriFix,
         Control.Arrow,
         Control.Category,
         Control.Concurrent,
@@ -159,6 +162,7 @@ Library {
         Data.String,
         Data.Traversable
         Data.Tuple,
+        Data.Type.Equality,
         Data.Typeable,
         Data.Typeable.Internal,
         Data.Unique,
