@@ -5,7 +5,9 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE EmptyDataDecls #-}
--- {-# OPTIONS -Wall #-}
+
+-- GHC wrongly complains about pattern completeness
+{-# OPTIONS -fno-warn-incomplete-patterns #-}
 
 module Control.Applicative.GeneriFix (
     (:::)
@@ -48,9 +50,9 @@ plusRightZero :: NatU a -> a :+: Zero :=: a
 plusRightZero Zero = Refl
 plusRightZero (Succ a) = cong $ plusRightZero a
 
-withTypeLevelNat :: Integer -> (forall n. NatU n -> r) -> r
-withTypeLevelNat 0 k = k Zero
-withTypeLevelNat n k = withTypeLevelNat (n-1) $ k . Succ
+-- withTypeLevelNat :: Integer -> (forall n. NatU n -> r) -> r
+-- withTypeLevelNat 0 k = k Zero
+-- withTypeLevelNat n k = withTypeLevelNat (n-1) $ k . Succ
 
 type a :+: b = Plus a b
 
@@ -108,9 +110,9 @@ data ListU ts where
   TNil :: ListU TNil
   (:::) :: Phantom t -> ListU ts -> ListU (t ::: ts)
 
-replicateTList :: NatU n -> Phantom t -> ListU (TReplicate n t)
-replicateTList Zero _ = TNil
-replicateTList (Succ n) t = t ::: replicateTList n t
+-- replicateTList :: NatU n -> Phantom t -> ListU (TReplicate n t)
+-- replicateTList Zero _ = TNil
+-- replicateTList (Succ n) t = t ::: replicateTList n t
 
 -- GHC 7.0.4 wrongly complains that patterns are non-exhaustive..
 deleteList :: TElem ix t ts -> ListU ts -> ListU (Delete ix ts)
@@ -123,10 +125,6 @@ listSwap HereSwappable (t1 ::: t2 ::: ts) = t2 ::: t1 ::: ts
 listSwap (ThereSwappable swappable) (t ::: ts) = t ::: listSwap swappable ts
 
 
-
-
-
-
 -- product of a list of types, under a monadic type constructor
 data family TProd (f :: * -> *) ts
 data instance TProd f TNil = MkNilProd
@@ -136,12 +134,12 @@ liftATProd :: (forall a. f a -> g a) -> ListU ts -> TProd f ts -> TProd g ts
 liftATProd _ TNil _ = MkNilProd
 liftATProd f (_t ::: tc) (MkCProd v vs) = MkCProd (f v) $ liftATProd f tc vs
 
-prodReplicate :: NatU n -> TProd f (TReplicate n t) -> [f t]
-prodReplicate = prodAllTs . replicateAllTs
+-- prodReplicate :: NatU n -> TProd f (TReplicate n t) -> [f t]
+-- prodReplicate = prodAllTs . replicateAllTs
 
-replicateT :: NatU n -> f t -> TProd f (TReplicate n t)
-replicateT Zero _ = MkNilProd
-replicateT (Succ n) v = MkCProd v $ replicateT n v
+-- replicateT :: NatU n -> f t -> TProd f (TReplicate n t)
+-- replicateT Zero _ = MkNilProd
+-- replicateT (Succ n) v = MkCProd v $ replicateT n v
 
 
 -- functions with a list of types as assumptions in a monadic functor f
@@ -174,36 +172,30 @@ tabulate :: ListU ts -> (forall t ix. Phantom t -> TElem ix t ts -> f t) -> TPro
 tabulate TNil _vf = MkNilProd
 tabulate (t ::: ts) vf = MkCProd (vf t THere) $ tabulate ts (\t' tints -> vf t' (TThere tints))
 
-invertElemReplicate :: NatU n -> TElem ix t_ (TReplicate n t) -> t :=: t_
-invertElemReplicate = invertElemAllTs . replicateAllTs
-
-
-
-
-
-
+-- invertElemReplicate :: NatU n -> TElem ix t_ (TReplicate n t) -> t :=: t_
+-- invertElemReplicate = invertElemAllTs . replicateAllTs
 
 
 -- lists containing only one type
-data AllTs t ts where
-  NilAllTs :: AllTs t TNil
-  ConsAllTs :: AllTs t ts -> AllTs t (t ::: ts)
+-- data AllTs t ts where
+--   NilAllTs :: AllTs t TNil
+--   ConsAllTs :: AllTs t ts -> AllTs t (t ::: ts)
 
-replicateAllTs :: NatU n -> AllTs t (TReplicate n t)
-replicateAllTs Zero = NilAllTs
-replicateAllTs (Succ n) = ConsAllTs $ replicateAllTs n
+-- replicateAllTs :: NatU n -> AllTs t (TReplicate n t)
+-- replicateAllTs Zero = NilAllTs
+-- replicateAllTs (Succ n) = ConsAllTs $ replicateAllTs n
 
-deleteAllTs :: TElem ix t_ ts -> AllTs t ts -> AllTs t (Delete ix ts)
-deleteAllTs THere (ConsAllTs ts) = ts
-deleteAllTs (TThere loc) (ConsAllTs ts) = ConsAllTs $ deleteAllTs loc ts
+-- deleteAllTs :: TElem ix t_ ts -> AllTs t ts -> AllTs t (Delete ix ts)
+-- deleteAllTs THere (ConsAllTs ts) = ts
+-- deleteAllTs (TThere loc) (ConsAllTs ts) = ConsAllTs $ deleteAllTs loc ts
 
-prodAllTs :: AllTs t ts -> TProd f ts -> [f t]
-prodAllTs NilAllTs MkNilProd = []
-prodAllTs (ConsAllTs n) (MkCProd v vs) = v : prodAllTs n vs
+-- prodAllTs :: AllTs t ts -> TProd f ts -> [f t]
+-- prodAllTs NilAllTs MkNilProd = []
+-- prodAllTs (ConsAllTs n) (MkCProd v vs) = v : prodAllTs n vs
 
-invertElemAllTs :: AllTs t ts -> TElem ix t_ ts -> t :=: t_
-invertElemAllTs (ConsAllTs _) THere = Refl
-invertElemAllTs (ConsAllTs allTs) (TThere t) = invertElemAllTs allTs t
+-- invertElemAllTs :: AllTs t ts -> TElem ix t_ ts -> t :=: t_
+-- invertElemAllTs (ConsAllTs _) THere = Refl
+-- invertElemAllTs (ConsAllTs allTs) (TThere t) = invertElemAllTs allTs t
 
 
 -- a type of applicative-polymorphic functions from type lists to type lists
@@ -249,10 +241,10 @@ indexTSplitIsNat (ShiftTSplit splt) = Succ $ indexTSplitIsNat splt
 -- a split primitive
 -- note that for convenience, we allow the type argument of TElem to be anything;
 -- we will derive that it has to be equal to t during pattern matching
-split :: Applicative f => 
-         NatU n -> TElem ix t_ (TReplicate n t) -> TArr f (TReplicate n t) [f t]
-split (Succ n) THere (MkCProd _v vs) = prodReplicate n vs
-split (Succ n) (TThere loc) (MkCProd v vs) = v : split n loc vs
+-- split :: Applicative f => 
+--          NatU n -> TElem ix t_ (TReplicate n t) -> TArr f (TReplicate n t) [f t]
+-- split (Succ n) THere (MkCProd _v vs) = prodReplicate n vs
+-- split (Succ n) (TThere loc) (MkCProd v vs) = v : split n loc vs
 
 
 

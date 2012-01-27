@@ -62,8 +62,8 @@ liftOutside = Compose . pure
 runIdentityCompose :: Functor p => Compose p Identity a -> p a
 runIdentityCompose = (runIdentity <$>) . runCompose
 
-withOuter :: (forall a. p a -> q a) -> Compose p b a -> Compose q b a
+withOuter :: (forall v. p v -> q v) -> Compose p b a -> Compose q b a
 withOuter f = Compose . f . runCompose
 
-withInner :: Functor p => (forall a. b a -> c a) -> Compose p b a -> Compose p c a
+withInner :: Functor p => (forall v. b v -> c v) -> Compose p b a -> Compose p c a
 withInner f = Compose . (f <$>) . runCompose

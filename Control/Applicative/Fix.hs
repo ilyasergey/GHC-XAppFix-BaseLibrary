@@ -16,6 +16,7 @@ module Control.Applicative.Fix (
   , afixInf  
   , afixKill
   , BLInt(..)
+  , manyAppFix, someAppFix
   ) where
 
 import Control.Applicative hiding (some, many)
