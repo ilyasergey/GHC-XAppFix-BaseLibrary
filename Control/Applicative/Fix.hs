@@ -80,6 +80,9 @@ instance ApplicativeFix [] where
 instance ApplicativeFix Maybe where
   afix = afixInf
 
+instance ApplicativeFix IO where
+  afix = afixInf
+
 instance ApplicativeFix b => ApplicativeFix (Compose ((->) a) b) where
   --type ApplicativeFixCtx (Compose ((->) a) b) v = ApplicativeFixCtx b v
   afixNC (f :: forall b2. Applicative b2 => Compose ((->) a) b (b2 v) -> Compose ((->) a) b (b2 v)) = 

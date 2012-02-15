@@ -17,6 +17,7 @@ module Control.Applicative.GeneriFix (
   , ListU(TNil, (:::))
   , nafix
   , nafix2
+  , nafix3
   , WrapTArrD(Wrap)
   , TProd (MkCProd, MkNilProd)
   , projTProd
@@ -126,9 +127,9 @@ listSwap (ThereSwappable swappable) (t ::: ts) = t ::: listSwap swappable ts
 
 
 -- product of a list of types, under a monadic type constructor
-data family TProd (f :: * -> *) ts
-data instance TProd f TNil = MkNilProd
-data instance TProd f (t ::: ts) = MkCProd (f t) (TProd f ts)
+data TProd (f :: * -> *) ts where
+  MkNilProd :: TProd f TNil
+  MkCProd :: f t -> TProd f ts -> TProd f (t ::: ts)
 
 liftATProd :: (forall a. f a -> g a) -> ListU ts -> TProd f ts -> TProd g ts
 liftATProd _ TNil _ = MkNilProd
@@ -336,6 +337,8 @@ type NFixable f ts = AnyAppNFun f ts ts
 nafix :: ApplicativeFix f => ListU ts -> NFixable f ts -> TProd f ts 
 nafix ts pf = liftATProd runIdentityCompose ts $ nafixG ts TNil ts NilTSplit pf MkNilProd
 
+nafix2 :: ApplicativeFix f => ListU ts -> TProd (WrapTArrD f ts) ts -> TProd f ts 
+nafix2 ts fs = nafix ts $ unWrapProd ts fs
 
 -- curried TArr's...
 type family TArrD (f :: * -> *) as t
@@ -370,9 +373,9 @@ unWrapProd :: forall ts f . ListU ts -> TProd (WrapTArrD f ts) ts -> NFixable f 
 unWrapProd ts fs = MkAANFun $ \(args :: TProd (Compose f b) ts) ->
   liftATProd (($args) . (uncurryTArr ts :: TArrD (Compose f b) ts (Compose f b t) -> TArr (Compose f b) ts (Compose f b t)) . unWrap (undefined :: Phantom1 b)) ts fs
 
-nafix2 :: forall f ts . ApplicativeFix f => Phantom1 f -> ListU ts ->
+nafix3 :: forall f ts . ApplicativeFix f => Phantom1 f -> ListU ts ->
           (TArrD (WrapTArrD f ts) ts (TProd f ts))
-nafix2 _f ts = 
+nafix3 _f ts = 
   let
     k :: TProd (WrapTArrD f ts) ts -> TProd f ts
     k pfs = nafix ts $ unWrapProd ts pfs
