@@ -19,9 +19,12 @@ module Control.Applicative.GeneriFix (
   , nafix2
   , nafix3
   , WrapTArrD(Wrap)
+  , TArrD
   , TProd (MkCProd, MkNilProd)
   , projTProd
   , TElem(THere, TThere)
+  , Zero
+  , Succ
   ) where
 
 -- This code would benefit from some of the PolyKinds additions, but we are avoiding it
