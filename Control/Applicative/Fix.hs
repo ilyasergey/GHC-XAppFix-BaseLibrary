@@ -21,6 +21,7 @@ module Control.Applicative.Fix (
 
 import Control.Applicative hiding (some, many)
 import Control.Applicative.Compose
+import Control.Applicative.Identity
 
 type Fixable p a = forall p2. Applicative p2 => Compose p p2 a -> Compose p p2 a
 type FixableNC p a = forall p2. Applicative p2 => p (p2 a) -> p (p2 a)

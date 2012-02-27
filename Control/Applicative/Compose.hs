@@ -4,6 +4,7 @@
 module Control.Applicative.Compose where
 
 import Control.Applicative
+import Control.Applicative.Identity
 
 newtype Compose p1 p2 a = Compose { runCompose :: p1 (p2 a) }
 
