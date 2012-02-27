@@ -113,6 +113,7 @@ Library {
         Control.Applicative.Compose,
         Control.Applicative.Fix,
         Control.Applicative.GeneriFix,
+        Control.Applicative.Identity,
         Control.Arrow,
         Control.Category,
         Control.Concurrent,
