@@ -22,6 +22,7 @@ module Control.Applicative.Fix (
 import Control.Applicative hiding (some, many)
 import Control.Applicative.Compose
 import Control.Applicative.Identity
+import Data.Function (fix)
 
 type Fixable p a = forall p2. Applicative p2 => Compose p p2 a -> Compose p p2 a
 type FixableNC p a = forall p2. Applicative p2 => p (p2 a) -> p (p2 a)
@@ -57,9 +58,6 @@ fixCompose :: (ApplicativeFix f, Applicative b
               Compose f b a
 fixCompose pf = Compose $ afixNC $ \s ->
   (runCompose <$>) $ runCompose $ pf (Compose $ Compose <$> s)
-
-fix :: (t -> t) -> t
-fix f = let s = fix f in f s
 
 fixToAfix :: Applicative p => ((p a -> p a) -> p a) -> Fixable p a -> p a
 fixToAfix fx f = fx $ runIdentityCompose . f . liftInside
