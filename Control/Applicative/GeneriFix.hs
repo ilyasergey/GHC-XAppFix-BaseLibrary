@@ -341,7 +341,7 @@ nafix :: ApplicativeFix f => ListU ts -> TProd (WrapTArrD f ts) ts -> TProd f ts
 nafix ts fs = nafix2 ts $ unWrapProd ts fs
 
 nafix2 :: ApplicativeFix f => ListU ts -> NFixable f ts -> TProd f ts 
-nafix2 ts pf = liftATProd runIdentityCompose ts $ nafixG ts TNil ts NilTSplit pf MkNilProd
+nafix2 ts pf = liftATProd runIdComp ts $ nafixG ts TNil ts NilTSplit pf MkNilProd
 
 -- curried TArr's...
 type family TArrD (f :: * -> *) as t

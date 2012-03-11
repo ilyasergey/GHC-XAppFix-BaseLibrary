@@ -60,7 +60,7 @@ fixCompose pf = Comp $ afixNC $ \s ->
   (comp <$>) $ comp $ pf (Comp $ Comp <$> s)
 
 fixToAfix :: Applicative p => ((p a -> p a) -> p a) -> Fixable p a -> p a
-fixToAfix fx f = fx $ runIdentityCompose . f . liftIn
+fixToAfix fx f = fx $ runIdComp . f . liftIn
 
 afixInf :: Applicative p => Fixable p a -> p a
 afixInf = fixToAfix fix
@@ -68,7 +68,7 @@ afixInf = fixToAfix fix
 --afixKill :: (Alternative p) => (forall b. Applicative b => Compose p b a -> Compose p b a) ->
 --            p a
 afixKill :: (Alternative p) => Fixable p a -> p a
-afixKill f = runIdentityCompose $ f empty
+afixKill f = runIdComp $ f empty
 
 instance ApplicativeFix Identity where
   afix = afixInf

@@ -60,11 +60,11 @@ liftIn = Comp . (pure <$>)
 liftOut :: (Applicative p) => b a -> Compose p b a
 liftOut = Comp . pure 
 
-runIdentityCompose :: Functor p => Compose p Identity a -> p a
-runIdentityCompose = (runIdentity <$>) . comp
+runIdComp :: Functor p => Compose p Identity a -> p a
+runIdComp = (runIdentity <$>) . comp
 
 wrapIdComp :: Applicative p => (forall b . Applicative b => Compose p b a -> Compose p b a) -> p a -> p a
-wrapIdComp f s = runIdentityCompose $ f $ liftIn s
+wrapIdComp f s = runIdComp $ f $ liftIn s
 
 withOuter :: (forall v. p v -> q v) -> Compose p b a -> Compose q b a
 withOuter f = Comp . f . comp
