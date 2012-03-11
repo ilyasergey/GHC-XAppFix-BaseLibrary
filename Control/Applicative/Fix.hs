@@ -27,28 +27,28 @@ import Data.Function (fix)
 type Fixable p a = forall p2. Applicative p2 => Compose p p2 a -> Compose p p2 a
 type FixableNC p a = forall p2. Applicative p2 => p (p2 a) -> p (p2 a)
 
--- newtype Compose p1 p2 a = Compose { runCompose :: p1 (p2 a) }
+-- newtype Compose p1 p2 a = Compose { comp :: p1 (p2 a) }
 class Applicative p => ApplicativeFix p where
 --  type ApplicativeFixCtx p a :: Constraint
 --  type ApplicativeFixCtx p a = ()
   --afix :: (forall b. Applicative b => Compose p b a -> Compose p b a) -> p a
   afix :: --ApplicativeFixCtx p a =>
           Fixable p a -> p a
-  afix f = afixNC (runCompose . f . Compose)
+  afix f = afixNC (comp . f . Comp)
   --afixNC :: (forall b. Applicative b => p (b a) -> p (b a)) -> p a
   afixNC :: -- ApplicativeFixCtx p a =>
             FixableNC p a -> p a
-  afixNC f = afix (Compose . f . runCompose)
+  afixNC f = afix (Comp . f . comp)
 
 class Alternative p => AlternativeFix p where
   some, many :: p a -> p [a]
 
 manyAppFix, someAppFix :: (Alternative p, ApplicativeFix p) => p a -> p [a]
-someAppFix f = afix $ \ fs -> (:) <$> liftInside f <*> (pure [] <|> fs)
-manyAppFix f = afix $ \ fs -> (:) <$> liftInside f <*> fs <|> pure []
+someAppFix f = afix $ \ fs -> (:) <$> liftIn f <*> (pure [] <|> fs)
+manyAppFix f = afix $ \ fs -> (:) <$> liftIn f <*> fs <|> pure []
 
 liftComposed :: (Applicative h, Functor f, Functor g) => Compose f g v -> Compose f (Compose h g) v
-liftComposed f = Compose $ (Compose <$>) $ pure <$> runCompose f
+liftComposed f = Comp $ (Comp <$>) $ pure <$> comp f
 
 fixCompose :: (ApplicativeFix f, Applicative b
               -- , ApplicativeFixCtx f (b a)
@@ -56,11 +56,11 @@ fixCompose :: (ApplicativeFix f, Applicative b
               (forall b2. Applicative b2 =>
                Compose f (Compose b2 b) a -> Compose f (Compose b2 b) a) ->
               Compose f b a
-fixCompose pf = Compose $ afixNC $ \s ->
-  (runCompose <$>) $ runCompose $ pf (Compose $ Compose <$> s)
+fixCompose pf = Comp $ afixNC $ \s ->
+  (comp <$>) $ comp $ pf (Comp $ Comp <$> s)
 
 fixToAfix :: Applicative p => ((p a -> p a) -> p a) -> Fixable p a -> p a
-fixToAfix fx f = fx $ runIdentityCompose . f . liftInside
+fixToAfix fx f = fx $ runIdentityCompose . f . liftIn
 
 afixInf :: Applicative p => Fixable p a -> p a
 afixInf = fixToAfix fix
@@ -85,8 +85,8 @@ instance ApplicativeFix IO where
 instance ApplicativeFix b => ApplicativeFix (Compose ((->) a) b) where
   --type ApplicativeFixCtx (Compose ((->) a) b) v = ApplicativeFixCtx b v
   afixNC (f :: forall b2. Applicative b2 => Compose ((->) a) b (b2 v) -> Compose ((->) a) b (b2 v)) = 
-    Compose $ \(a :: a) -> afixNC $ \ (self :: b (b2 v)) ->
-      runCompose (f (liftOutside self)) a
+    Comp $ \(a :: a) -> afixNC $ \ (self :: b (b2 v)) ->
+      comp (f (liftOut self)) a
 
 newtype BLInt p a = MkBLI { breakLoops :: p a } deriving (Functor, Applicative, Alternative)
 

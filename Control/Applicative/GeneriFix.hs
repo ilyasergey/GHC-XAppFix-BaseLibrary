@@ -337,11 +337,11 @@ nafixG tsAll tsg tsfix theSplit
 -- multi fixpoint
 type NFixable f ts = AnyAppNFun f ts ts
 
-nafix :: ApplicativeFix f => ListU ts -> NFixable f ts -> TProd f ts 
-nafix ts pf = liftATProd runIdentityCompose ts $ nafixG ts TNil ts NilTSplit pf MkNilProd
+nafix :: ApplicativeFix f => ListU ts -> TProd (WrapTArrD f ts) ts -> TProd f ts 
+nafix ts fs = nafix2 ts $ unWrapProd ts fs
 
-nafix2 :: ApplicativeFix f => ListU ts -> TProd (WrapTArrD f ts) ts -> TProd f ts 
-nafix2 ts fs = nafix ts $ unWrapProd ts fs
+nafix2 :: ApplicativeFix f => ListU ts -> NFixable f ts -> TProd f ts 
+nafix2 ts pf = liftATProd runIdentityCompose ts $ nafixG ts TNil ts NilTSplit pf MkNilProd
 
 -- curried TArr's...
 type family TArrD (f :: * -> *) as t
@@ -381,7 +381,7 @@ nafix3 :: forall f ts . ApplicativeFix f => Phantom1 f -> ListU ts ->
 nafix3 _f ts = 
   let
     k :: TProd (WrapTArrD f ts) ts -> TProd f ts
-    k pfs = nafix ts $ unWrapProd ts pfs
+    k pfs = nafix2 ts $ unWrapProd ts pfs
   in fmapTArrD ts (undefined :: Phantom1 (WrapTArrD f ts)) k
        (mkProd ts (undefined :: Phantom1 (WrapTArrD f ts)))
 
