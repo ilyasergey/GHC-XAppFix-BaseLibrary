@@ -51,20 +51,20 @@ coappG_ :: forall p1 p3 b a. (Applicative p1, Applicative p3) =>
           AppFun p1 b a -> Compose p1 p3 (b -> a)
 coappG_ (f :: forall p2. Applicative p2 => Compose p1 p2 b -> Compose p1 p2 a) =
   -- p2 = Compose p3 ((->) b)
-  Comp $ (comp <$>) $ comp $ f $ liftOut $ liftOut id
+  Comp $ (comp <$>) $ comp $ f $ liftInner $ liftInner id
 
 
-liftIn :: (Applicative p, Applicative b) => p a -> Compose p b a
-liftIn = Comp . (pure <$>)
+liftOuter :: (Applicative p, Applicative b) => p a -> Compose p b a
+liftOuter = Comp . (pure <$>)
 
-liftOut :: (Applicative p) => b a -> Compose p b a
-liftOut = Comp . pure 
+liftInner :: (Applicative p) => b a -> Compose p b a
+liftInner = Comp . pure 
 
 runIdComp :: Functor p => Compose p Identity a -> p a
 runIdComp = (runIdentity <$>) . comp
 
 wrapIdComp :: Applicative p => (forall b . Applicative b => Compose p b a -> Compose p b a) -> p a -> p a
-wrapIdComp f s = runIdComp $ f $ liftIn s
+wrapIdComp f s = runIdComp $ f $ liftOuter s
 
 withOuter :: (forall v. p v -> q v) -> Compose p b a -> Compose q b a
 withOuter f = Comp . f . comp

@@ -44,8 +44,8 @@ class Alternative p => AlternativeFix p where
   some, many :: p a -> p [a]
 
 manyAppFix, someAppFix :: (Alternative p, ApplicativeFix p) => p a -> p [a]
-someAppFix f = afix $ \ fs -> (:) <$> liftIn f <*> (pure [] <|> fs)
-manyAppFix f = afix $ \ fs -> (:) <$> liftIn f <*> fs <|> pure []
+someAppFix f = afix $ \ fs -> (:) <$> liftOuter f <*> (pure [] <|> fs)
+manyAppFix f = afix $ \ fs -> (:) <$> liftOuter f <*> fs <|> pure []
 
 liftComposed :: (Applicative h, Functor f, Functor g) => Compose f g v -> Compose f (Compose h g) v
 liftComposed f = Comp $ (Comp <$>) $ pure <$> comp f
@@ -60,7 +60,7 @@ fixCompose pf = Comp $ afixNC $ \s ->
   (comp <$>) $ comp $ pf (Comp $ Comp <$> s)
 
 fixToAfix :: Applicative p => ((p a -> p a) -> p a) -> Fixable p a -> p a
-fixToAfix fx f = fx $ runIdComp . f . liftIn
+fixToAfix fx f = fx $ runIdComp . f . liftOuter
 
 afixInf :: Applicative p => Fixable p a -> p a
 afixInf = fixToAfix fix
@@ -86,7 +86,7 @@ instance ApplicativeFix b => ApplicativeFix (Compose ((->) a) b) where
   --type ApplicativeFixCtx (Compose ((->) a) b) v = ApplicativeFixCtx b v
   afixNC (f :: forall b2. Applicative b2 => Compose ((->) a) b (b2 v) -> Compose ((->) a) b (b2 v)) = 
     Comp $ \(a :: a) -> afixNC $ \ (self :: b (b2 v)) ->
-      comp (f (liftOut self)) a
+      comp (f (liftInner self)) a
 
 newtype BLInt p a = MkBLI { breakLoops :: p a } deriving (Functor, Applicative, Alternative)
 
